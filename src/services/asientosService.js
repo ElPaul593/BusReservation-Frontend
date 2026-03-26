@@ -5,7 +5,7 @@ import axios from 'axios';
  * BaseURL: http://localhost:5000/api/asientos
  */
 
-const SEAT_API_BASE_URL = import.meta.env.VITE_SEAT_API_URL || 'https://pju6kl-ip-200-50-235-224.tunnelmole.net/api/asientos';
+const SEAT_API_BASE_URL = import.meta.env.VITE_SEAT_API_URL || '/api/asientos';
 
 const CLIENT_ID = () => {
     // Obtener userId del token o localStorage
