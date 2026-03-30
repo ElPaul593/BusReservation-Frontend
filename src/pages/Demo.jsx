@@ -47,8 +47,8 @@ export default function Demo() {
         <div className="container">
           <h2 className="section-title">¿Por qué elegirnos?</h2>
           <div className="features-grid">
-            {FEATURES.map((feature, index) => (
-              <div key={index} className="feature-card">
+            {FEATURES.map((feature) => (
+              <div key={feature.title} className="feature-card">
                 <div className="feature-icon">{feature.icon}</div>
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
@@ -63,8 +63,8 @@ export default function Demo() {
         <div className="container">
           <h2 className="section-title">Rutas Populares</h2>
           <div className="routes-grid">
-            {RUTAS_POPULARES.map((ruta, index) => (
-              <div key={index} className="route-card">
+            {RUTAS_POPULARES.map((ruta) => (
+              <div key={`${ruta.origen}-${ruta.destino}`} className="route-card">
                 <div className="route-info">
                   <h4>{ruta.origen} ➜ {ruta.destino}</h4>
                   <p>Desde <span className="price">{ruta.precio}</span></p>

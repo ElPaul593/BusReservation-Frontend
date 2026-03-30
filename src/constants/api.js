@@ -10,5 +10,5 @@ if (import.meta.env.VITE_API_URL) {
 }
 
 export const API_BASE_URL = baseURL;
-export const API_TIMEOUT = 30000; // 30 seconds for slow Render API
+export const API_TIMEOUT = 8000; // 8 seconds (API en Vercel, respuesta rápida)
 

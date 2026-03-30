@@ -89,7 +89,7 @@
     font-weight: bold;
     border-radius: 30px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
 }
 

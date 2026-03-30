@@ -307,7 +307,7 @@ export default function RegisterForm() {
               borderBottom: activeTab === 'nacional' ? '3px solid #007bff' : '3px solid transparent',
               color: activeTab === 'nacional' ? '#007bff' : '#666',
               fontWeight: activeTab === 'nacional' ? '600' : '400',
-              transition: 'all 0.2s'
+              transition: 'color 0.2s, border-color 0.2s'
             }}
           >
             Usuarios Nacionales (Ecuador)
@@ -323,7 +323,7 @@ export default function RegisterForm() {
               borderBottom: activeTab === 'extranjero' ? '3px solid #007bff' : '3px solid transparent',
               color: activeTab === 'extranjero' ? '#007bff' : '#666',
               fontWeight: activeTab === 'extranjero' ? '600' : '400',
-              transition: 'all 0.2s'
+              transition: 'color 0.2s, border-color 0.2s'
             }}
           >
             Extranjeros
@@ -399,8 +399,8 @@ export default function RegisterForm() {
                     required
                   >
                     <option value="">Seleccione un país</option>
-                    {paisesExtranjeros.map((pais, index) => (
-                      <option key={index} value={pais}>{pais}</option>
+                    {paisesExtranjeros.map((pais) => (
+                      <option key={pais} value={pais}>{pais}</option>
                     ))}
                   </select>
                   {paisOrigenError && <div className="error">{paisOrigenError}</div>}

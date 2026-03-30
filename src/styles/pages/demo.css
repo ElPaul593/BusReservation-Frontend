@@ -217,7 +217,7 @@
   border-radius: 30px;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .btn-quick-reserve:hover {
