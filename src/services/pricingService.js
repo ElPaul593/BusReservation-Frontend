@@ -87,28 +87,6 @@ function calculatePricingFallback(cantidad) {
   };
 }
 
-/**
- * Calcular precio para una ruta específica
- * @deprecated Usar getPricing(cantidad) en su lugar
- */
-export async function calculatePrice(rutaId, fecha, options = {}) {
-  // Si se proporciona cantidad, usar getPricing directamente
-  if (options.cantidad) {
-    return getPricing(options.cantidad);
-  }
-
-  // Fallback para compatibilidad
-  return {
-    ok: true,
-    precioBase: 50000,
-    descuento: 0,
-    recargo: 0,
-    totalPagar: 50000,
-    _isFallback: true
-  };
-}
-
 export default {
-  getPricing,
-  calculatePrice
+  getPricing
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import HoldTimer from './HoldTimer';
 import './BusSeatSelector.css';
 import {
@@ -11,6 +11,45 @@ import {
 } from '../services/asientosService';
 import { getPricing } from '../services/pricingService';
 
+const SeatButton = ({ seat, myHolds, loading, onSeatClick }) => {
+    const isSelected = myHolds.some(h => h.asiento === seat.number);
+    let className = `seat seat-${seat.status}`;
+    if (isSelected) className += ' seat-selected';
+
+    return (
+        <button
+            className={className}
+            onClick={() => onSeatClick(seat)}
+            disabled={loading || (seat.status !== 'available' && seat.status !== 'heldByMe')}
+            title={`Asiento ${seat.number} - ${seat.status}`}
+        >
+            {seat.number}
+        </button>
+    );
+};
+
+const BusGrid = ({ seats, myHolds, loading, onSeatClick }) => {
+    if (!seats || seats.length === 0) {
+        return <div className="no-seats" style={{ color: '#000', padding: '20px', textAlign: 'center' }}>No hay asientos disponibles</div>;
+    }
+
+    const rows = [];
+    for (let i = 0; i < seats.length; i += 4) {
+        const rowSeats = seats.slice(i, i + 4);
+        const rowKey = rowSeats[0]?.number ?? i;
+        rows.push(
+            <div key={rowKey} className="bus-row">
+                {rowSeats[0] ? <SeatButton seat={rowSeats[0]} myHolds={myHolds} loading={loading} onSeatClick={onSeatClick} /> : <div className="seat-placeholder"></div>}
+                {rowSeats[1] ? <SeatButton seat={rowSeats[1]} myHolds={myHolds} loading={loading} onSeatClick={onSeatClick} /> : <div className="seat-placeholder"></div>}
+                <div className="aisle"></div>
+                {rowSeats[2] ? <SeatButton seat={rowSeats[2]} myHolds={myHolds} loading={loading} onSeatClick={onSeatClick} /> : <div className="seat-placeholder"></div>}
+                {rowSeats[3] ? <SeatButton seat={rowSeats[3]} myHolds={myHolds} loading={loading} onSeatClick={onSeatClick} /> : <div className="seat-placeholder"></div>}
+            </div>
+        );
+    }
+    return rows;
+};
+
 const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
     const [seats, setSeats] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -20,6 +59,7 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
     const [pricingInfo, setPricingInfo] = useState(null); // { precioBase, descuento, recargo, totalPagar }
     const [showDebug, setShowDebug] = useState(false);
     const [debugData, setDebugData] = useState(null);
+    const consecutiveErrors = useRef(0); // Contador de errores para backoff del intervalo
 
     // Normalizar rutaId - puede venir como objeto o string
     const normalizeRutaId = (rutaIdValue) => {
@@ -67,6 +107,7 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
                 timestamp: new Date().toISOString()
             });
 
+            consecutiveErrors.current = 0; // Resetear en éxito
             setApiResponse({ disponibles: disponiblesRes, holds: holdsRes });
 
             if (disponiblesRes.ok) {
@@ -116,6 +157,7 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
                 }
             }
         } catch (e) {
+            consecutiveErrors.current += 1; // Incrementar en error
             setError(e.message);
         } finally {
             setLoading(false);
@@ -126,12 +168,13 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
         loadSeats();
     }, [loadSeats]);
 
-    // Auto-refresh cada 10 segundos (opcional)
+    // Auto-refresh cada 10 segundos — se detiene si hay 3 errores consecutivos (evita spam de 404/timeouts)
     useEffect(() => {
+        consecutiveErrors.current = 0; // Resetear al cambiar ruta o fecha
         const interval = setInterval(() => {
-            if (myHolds.length === 0) {
-                loadSeats();
-            }
+            if (myHolds.length > 0) return; // No refrescar si el usuario tiene holds activos
+            if (consecutiveErrors.current >= 3) return; // Detener si la API falla repetidamente
+            loadSeats();
         }, 10000);
         return () => clearInterval(interval);
     }, [loadSeats, myHolds.length, rutaId, fecha]);
@@ -374,45 +417,6 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
         loadSeats();
     };
 
-    // Renderizar grid de asientos (4 columnas: 2 + pasillo + 2)
-    const renderBusGrid = () => {
-        if (!seats || seats.length === 0) {
-            return <div className="no-seats" style={{ color: '#000', padding: '20px', textAlign: 'center' }}>No hay asientos disponibles</div>;
-        }
-
-        const rows = [];
-        for (let i = 0; i < seats.length; i += 4) {
-            const rowSeats = seats.slice(i, i + 4);
-            rows.push(
-                <div key={i} className="bus-row">
-                    {rowSeats[0] ? <SeatButton seat={rowSeats[0]} /> : <div className="seat-placeholder"></div>}
-                    {rowSeats[1] ? <SeatButton seat={rowSeats[1]} /> : <div className="seat-placeholder"></div>}
-                    <div className="aisle"></div>
-                    {rowSeats[2] ? <SeatButton seat={rowSeats[2]} /> : <div className="seat-placeholder"></div>}
-                    {rowSeats[3] ? <SeatButton seat={rowSeats[3]} /> : <div className="seat-placeholder"></div>}
-                </div>
-            );
-        }
-        return rows;
-    };
-
-    const SeatButton = ({ seat }) => {
-        const isSelected = myHolds.some(h => h.asiento === seat.number);
-        let className = `seat seat-${seat.status}`;
-        if (isSelected) className += ' seat-selected';
-
-        return (
-            <button
-                className={className}
-                onClick={() => handleSeatClick(seat)}
-                disabled={loading || (seat.status !== 'available' && seat.status !== 'heldByMe')}
-                title={`Asiento ${seat.number} - ${seat.status}`}
-            >
-                {seat.number}
-            </button>
-        );
-    };
-
     // Lista de asientos seleccionados
     const selectedSeatsList = myHolds.map(h => h.asiento).sort((a, b) => a - b);
 
@@ -438,7 +442,7 @@ const BusSeatSelector = ({ rutaId, fecha, onClose, onReservationComplete }) => {
             <div className="bus-container">
                 <div className="driver-section">🚌 Conductor</div>
                 <div className="seats-grid">
-                    {renderBusGrid()}
+                    <BusGrid seats={seats} myHolds={myHolds} loading={loading} onSeatClick={handleSeatClick} />
                 </div>
             </div>
 

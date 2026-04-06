@@ -45,7 +45,7 @@
   cursor: pointer;
   border: 1px solid #7f8c8d;
   background-color: #bdc3c7;
-  transition: all 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .seat-item:hover {

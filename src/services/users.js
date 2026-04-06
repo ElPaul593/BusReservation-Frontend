@@ -76,6 +76,17 @@ export async function getCurrentUser() {
     const response = await api.get('/users/me', { headers: getAuthHeaders() });
     return response.data;
   } catch (err) {
+    // Si el token es inválido o expiró, limpiar localStorage y redirigir al login
+    if (err?.response?.status === 401 || err?.response?.status === 403) {
+      console.warn('Token inválido o expirado. Cerrando sesión automáticamente.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Solo redirigir si no estamos ya en Login/Register
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login';
+      }
+      return null;
+    }
     const message = err?.response?.data?.message || err?.response?.data?.error || err.message || 'Error al obtener usuario actual';
     throw new Error(message);
   }

@@ -2,6 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { getAvailableSeats, holdSeat, deleteHold, confirmReservation, getHolds } from '../services/seats';
 import './SeatSelection.css';
 
+const SeatButton = ({ seat, selectedSeat, onSeatClick }) => {
+    if (!seat) return <div className="seat-item hidden"></div>;
+    let className = 'seat-item ';
+    if (seat.numero === selectedSeat) className += 'seat-selected';
+    else if (seat.estado === 'available') className += 'seat-available';
+    else className += 'seat-reserved';
+
+    return (
+        <div
+            className={className}
+            role="button"
+            tabIndex={0}
+            onClick={() => onSeatClick(seat)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSeatClick(seat); }}
+        >
+            {seat.numero}
+        </div>
+    );
+};
+
+const SeatGrid = ({ seats, selectedSeat, onSeatClick }) => {
+    if (!seats || seats.length === 0) {
+        return <div>No hay asientos disponibles</div>;
+    }
+    const rows = [];
+    for (let i = 0; i < 40; i += 4) {
+        const rowSeats = seats.slice(i, i + 4);
+        const rowKey = rowSeats[0]?.numero ?? i;
+        rows.push(
+            <React.Fragment key={rowKey}>
+                <SeatButton seat={rowSeats[0]} selectedSeat={selectedSeat} onSeatClick={onSeatClick} />
+                <SeatButton seat={rowSeats[1]} selectedSeat={selectedSeat} onSeatClick={onSeatClick} />
+                <div className="aisle"></div>
+                {rowSeats[2] ? <SeatButton seat={rowSeats[2]} selectedSeat={selectedSeat} onSeatClick={onSeatClick} /> : <div className="seat-item hidden"></div>}
+                {rowSeats[3] ? <SeatButton seat={rowSeats[3]} selectedSeat={selectedSeat} onSeatClick={onSeatClick} /> : <div className="seat-item hidden"></div>}
+            </React.Fragment>
+        );
+    }
+    return rows;
+};
+
 const SeatSelection = ({ rutaId, fecha, userId }) => {
     const [seats, setSeats] = useState([]);
     const [selectedSeat, setSelectedSeat] = useState(null);
@@ -148,42 +189,6 @@ const SeatSelection = ({ rutaId, fecha, userId }) => {
         }
     };
 
-    const renderGrid = () => {
-        if (!seats || seats.length === 0) {
-            return <div>No hay asientos disponibles</div>;
-        }
-        
-        const rows = [];
-        for (let i = 0; i < 40; i += 4) {
-            const rowSeats = seats.slice(i, i + 4);
-            // Validar que rowSeats tenga los elementos necesarios antes de renderizar
-            rows.push(
-                <React.Fragment key={i}>
-                    <SeatButton seat={rowSeats[0]} />
-                    <SeatButton seat={rowSeats[1]} />
-                    <div className="aisle"></div>
-                    {rowSeats[2] ? <SeatButton seat={rowSeats[2]} /> : <div className="seat-item hidden"></div>}
-                    {rowSeats[3] ? <SeatButton seat={rowSeats[3]} /> : <div className="seat-item hidden"></div>}
-                </React.Fragment>
-            );
-        }
-        return rows;
-    };
-
-    const SeatButton = ({ seat }) => {
-        if (!seat) return <div className="seat-item hidden"></div>;
-        let className = 'seat-item ';
-        if (seat.numero === selectedSeat) className += 'seat-selected';
-        else if (seat.estado === 'available') className += 'seat-available';
-        else className += 'seat-reserved';
-
-        return (
-            <div className={className} onClick={() => handleSeatClick(seat)}>
-                {seat.numero}
-            </div>
-        );
-    };
-
     return (
         <div className="seat-grid-container">
             <h3>Selección de Asientos (Demo API)</h3>
@@ -194,7 +199,7 @@ const SeatSelection = ({ rutaId, fecha, userId }) => {
             <div className="bus-container">
                 <div className="driver-area">Frente</div>
                 <div className="seats-grid">
-                    {renderGrid()}
+                    <SeatGrid seats={seats} selectedSeat={selectedSeat} onSeatClick={handleSeatClick} />
                 </div>
             </div>
 
@@ -222,8 +227,8 @@ const SeatSelection = ({ rutaId, fecha, userId }) => {
                 <div className="holds-list-panel">
                     <h4>Holds Activos:</h4>
                     <ul>
-                        {holdsList.map((h, idx) => (
-                            <li key={idx}>
+                        {holdsList.map((h) => (
+                            <li key={h.holdId}>
                                 HoldID: {h.holdId} | Asiento: {h.asiento} | Expira: {h.expiresAt}
                             </li>
                         ))}

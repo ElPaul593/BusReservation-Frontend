@@ -5,7 +5,8 @@ import axios from 'axios';
  * BaseURL: http://localhost:5000/api/asientos
  */
 
-const SEAT_API_BASE_URL = import.meta.env.VITE_SEAT_API_URL || 'https://pju6kl-ip-200-50-235-224.tunnelmole.net/api/asientos';
+// Eliminar trailing slash para evitar doble slash en endpoints (/api/asientos//holds)
+const SEAT_API_BASE_URL = (import.meta.env.VITE_SEAT_API_URL || '/api/asientos').replace(/\/$/, '');
 
 const CLIENT_ID = () => {
     // Obtener userId del token o localStorage
@@ -30,7 +31,7 @@ export async function getDisponibles({ rutaId, fecha }) {
     try {
         const response = await axios.get(`${SEAT_API_BASE_URL}/disponibles`, {
             params: { rutaId, fecha },
-            timeout: 30000
+            timeout: 8000
         });
         return response.data;
     } catch (err) {
@@ -65,7 +66,7 @@ export async function createHold({ rutaId, fecha, seatNumber }) {
             fecha,
             asiento: seatNumber,
             userId: userId // El proxy espera userId, no clientId
-        }, { timeout: 30000 });
+        }, { timeout: 8000 });
         return response.data;
     } catch (err) {
         console.error('Error creating hold:', err);
@@ -99,7 +100,7 @@ export async function createHold({ rutaId, fecha, seatNumber }) {
  */
 export async function getHolds() {
     try {
-        const response = await axios.get(`${SEAT_API_BASE_URL}/holds`, { timeout: 30000 });
+        const response = await axios.get(`${SEAT_API_BASE_URL}/holds`, { timeout: 8000 });
         return response.data;
     } catch (err) {
         console.error('Error fetching holds:', err);
@@ -122,7 +123,7 @@ export async function deleteHold({ holdId, rutaId, fecha, asiento }) {
         if (holdId) {
             const response = await axios.delete(`${SEAT_API_BASE_URL}/holds`, {
                 data: { holdId },
-                timeout: 30000
+                timeout: 8000
             });
             return response.data;
         }
@@ -130,7 +131,7 @@ export async function deleteHold({ holdId, rutaId, fecha, asiento }) {
         if (rutaId && fecha && asiento) {
             const response = await axios.delete(`${SEAT_API_BASE_URL}/holds`, {
                 data: { rutaId, fecha, asiento },
-                timeout: 30000
+                timeout: 8000
             });
             return response.data;
         }
@@ -170,7 +171,7 @@ export async function confirmReserva({ rutaId, fecha, asiento, holdId }) {
             fecha,
             asiento,
             holdId
-        }, { timeout: 30000 });
+        }, { timeout: 8000 });
         return response.data;
     } catch (err) {
         console.error('Error confirming reservation:', err);
