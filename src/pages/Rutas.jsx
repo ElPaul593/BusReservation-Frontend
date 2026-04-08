@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../services/users';
 import { PROVINCIAS_ARRAY, getProvinciaFromCedula } from '../constants/provincias';
 import { getRutasPorProvincia, getRutas } from '../services/rutas';
+import EcuadorMapSelector from '../components/EcuadorMapSelector';
 
 export default function Rutas() {
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export default function Rutas() {
       try {
         const me = await getCurrentUser();
         setUser(me);
-        
+
         // Si el usuario es ecuatoriano (tiene cédula), obtener su provincia
         if (me.cedula) {
           const provincia = getProvinciaFromCedula(me.cedula);
@@ -158,21 +159,13 @@ export default function Rutas() {
           </div>
           {!mostrarTodas && (
             <>
-              <label htmlFor="provincia-select">Selecciona una provincia para ver rutas recomendadas:</label>
-              <select
-                id="provincia-select"
-                className="input"
+              <label style={{ color: '#94A3B8', fontSize: '13px', fontWeight: '500' }}>
+                Selecciona una provincia para ver rutas recomendadas:
+              </label>
+              <EcuadorMapSelector
                 value={provinciaSeleccionada}
-                onChange={(e) => setProvinciaSeleccionada(e.target.value)}
-                style={{ maxWidth: '400px', marginTop: '8px' }}
-              >
-                <option value="">Seleccione una provincia</option>
-                {PROVINCIAS_ARRAY.map((prov) => (
-                  <option key={prov.codigo} value={prov.nombre}>
-                    {prov.nombre}
-                  </option>
-                ))}
-              </select>
+                onChange={setProvinciaSeleccionada}
+              />
             </>
           )}
         </div>
@@ -190,8 +183,8 @@ export default function Rutas() {
         {(provinciaSeleccionada || mostrarTodas) && !loadingRutas && rutasRecomendadas.length > 0 && (
           <div className="rutas-section">
             <h3>
-              {mostrarTodas 
-                ? `Todas las rutas disponibles (${rutasRecomendadas.length} rutas)` 
+              {mostrarTodas
+                ? `Todas las rutas disponibles (${rutasRecomendadas.length} rutas)`
                 : `Rutas desde ${provinciaSeleccionada} (${rutasRecomendadas.length} rutas disponibles)`
               }
             </h3>
@@ -220,7 +213,7 @@ export default function Rutas() {
                       <span className="ruta-value">{ruta.empresa}</span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="btn-ruta"
                     onClick={() => navigate(`/boletos?origen=${encodeURIComponent(ruta.origen)}&destino=${encodeURIComponent(ruta.destino)}`)}
                   >
@@ -235,8 +228,8 @@ export default function Rutas() {
         {(provinciaSeleccionada || mostrarTodas) && !loadingRutas && rutasRecomendadas.length === 0 && (
           <div className="no-rutas">
             <p>
-              {mostrarTodas 
-                ? 'No hay rutas disponibles en este momento.' 
+              {mostrarTodas
+                ? 'No hay rutas disponibles en este momento.'
                 : `No hay rutas disponibles para ${provinciaSeleccionada} en este momento.`
               }
             </p>

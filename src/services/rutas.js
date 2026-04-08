@@ -62,7 +62,9 @@ export async function getRutasPorProvincia(provincia) {
     if (ciudades.length === 0) return [];
 
     return todasLasRutas.filter(ruta =>
-      ciudades.some(ciudad => ruta.from && ruta.from.includes(ciudad))
+      ciudades.some(ciudad =>
+        ruta.from && ruta.from.toLowerCase().includes(ciudad.toLowerCase())
+      )
     );
   } catch (err) {
     console.error(`Error fetching rutas por provincia ${provincia}:`, err);
